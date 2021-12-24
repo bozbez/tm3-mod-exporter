@@ -1,0 +1,51 @@
+find_path(NVTT_INCLUDE_DIR
+    NAMES "nvtt/nvtt.h"
+)
+
+if(NVTT_INCLUDE_DIR)
+    file(READ "${NVTT_INCLUDE_DIR}/nvtt/nvtt.h" NVTT_H)
+    string(REGEX MATCH "#define[\t ]+NVTT_VERSION[\t ]+([0-9]*)" _ "${NVTT_H}")
+    set(NVTT_RAW_VERSION "${CMAKE_MATCH_1}")
+
+    math(EXPR NVTT_MAJOR_VERSION
+        "${NVTT_RAW_VERSION} / 10000")
+
+    math(EXPR NVTT_MINOR_VERSION
+        "(${NVTT_RAW_VERSION} - 10000 * ${NVTT_MAJOR_VERSION}) / 100")
+
+    math(EXPR NVTT_PATCH_VERSION
+        "(${NVTT_RAW_VERSION} - 10000 * ${NVTT_MAJOR_VERSION} - 100 * ${NVTT_MINOR_VERSION})")
+
+    set(NVTT_VERSION "${NVTT_MAJOR_VERSION}.${NVTT_MINOR_VERSION}.${NVTT_PATCH_VERSION}")
+endif()
+
+file(GLOB NVTT_LIBRARY_PATHS "${NVTT_INCLUDE_DIR}/../lib/*/")
+
+find_file(NVTT_LIBRARY
+    NAMES "nvtt${NVTT_RAW_VERSION}.lib"
+    PATHS "${NVTT_LIBRARY_PATHS}"
+)
+
+find_file(NVTT_SHARED_LIBRARY NAMES "nvtt${NVTT_RAW_VERSION}.dll")
+file(GLOB NVTT_CUDA_SHARED_LIBRARY "${NVTT_INCLUDE_DIR}/../cudart64_*.dll")
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(NVTT
+    FOUND_VAR
+        NVTT_FOUND
+    REQUIRED_VARS
+        NVTT_LIBRARY
+        NVTT_SHARED_LIBRARY
+	NVTT_CUDA_SHARED_LIBRARY
+	NVTT_INCLUDE_DIR
+    VERSION_VAR
+        NVTT_VERSION
+)
+
+if(NVTT_FOUND AND NOT TARGET NVTT::NVTT)
+    add_library(NVTT::NVTT UNKNOWN IMPORTED)
+    set_target_properties(NVTT::NVTT PROPERTIES
+        IMPORTED_LOCATION "${NVTT_LIBRARY}"
+	INTERFACE_INCLUDE_DIRECTORIES "${NVTT_INCLUDE_DIR}"
+    )
+endif()

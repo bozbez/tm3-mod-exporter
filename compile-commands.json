@@ -1,0 +1,17 @@
+[
+{
+  "directory": "C:/Users/joeka/Desktop/tm3-mod-exporter/build",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DFMT_LOCALE -I_deps\\fmt-src\\include -I_deps\\cli11-src\\include -I\"C:\\Program Files\\NVIDIA Corporation\\NVIDIA Texture Tools\\include\" /DWIN32 /D_WINDOWS /EHsc /O2 /Ob2 /DNDEBUG -MD -openmp -std:c++latest /FoCMakeFiles\\tm3-mod-exporter.dir\\src\\tm3-mod-exporter.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\joeka\\Desktop\\tm3-mod-exporter\\src\\tm3-mod-exporter.cpp",
+  "file": "C:/Users/joeka/Desktop/tm3-mod-exporter/src/tm3-mod-exporter.cpp"
+},
+{
+  "directory": "C:/Users/joeka/Desktop/tm3-mod-exporter/build",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DFMT_LOCALE -I_deps\\fmt-src\\include /DWIN32 /D_WINDOWS /EHsc /O2 /Ob2 /DNDEBUG -MD -std:c++latest /Fo_deps\\fmt-build\\CMakeFiles\\fmt.dir\\src\\format.cc.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\joeka\\Desktop\\tm3-mod-exporter\\build\\_deps\\fmt-src\\src\\format.cc",
+  "file": "C:/Users/joeka/Desktop/tm3-mod-exporter/build/_deps/fmt-src/src/format.cc"
+},
+{
+  "directory": "C:/Users/joeka/Desktop/tm3-mod-exporter/build",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DFMT_LOCALE -I_deps\\fmt-src\\include /DWIN32 /D_WINDOWS /EHsc /O2 /Ob2 /DNDEBUG -MD -std:c++latest /Fo_deps\\fmt-build\\CMakeFiles\\fmt.dir\\src\\os.cc.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\joeka\\Desktop\\tm3-mod-exporter\\build\\_deps\\fmt-src\\src\\os.cc",
+  "file": "C:/Users/joeka/Desktop/tm3-mod-exporter/build/_deps/fmt-src/src/os.cc"
+}
+]
