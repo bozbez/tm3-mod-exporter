@@ -4,29 +4,28 @@ project(tm3-mod-exporter VERSION 0.1.0)
 set(RELEASE_DIR "${CMAKE_SOURCE_DIR}/release")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
-set(CMAKE_CXX_STANDARD 20)
 
 find_package(NVTT 3.1.6 REQUIRED)
 find_package(OpenMP REQUIRED)
 
+set(wxBUILD_SHARED OFF)
+
 include(FetchContent)
 
-FetchContent_Declare(
-    fmt
-    GIT_REPOSITORY "https://github.com/fmtlib/fmt.git"
-    GIT_TAG "8.0.1"
-)
+set(CMAKE_CXX_STANDARD 17)
 
 FetchContent_Declare(
-    CLI11
-    GIT_REPOSITORY "https://github.com/CLIUtils/CLI11.git"
-    GIT_TAG "v2.1.2"
+    wxWidgets
+    GIT_REPOSITORY "https://github.com/wxWidgets/wxWidgets.git"
+    GIT_TAG "v3.1.5"
 )
 
-FetchContent_MakeAvailable(fmt CLI11)
+FetchContent_MakeAvailable(wxWidgets)
 
-add_executable(tm3-mod-exporter src/tm3-mod-exporter.cpp)
-target_link_libraries(tm3-mod-exporter OpenMP::OpenMP_CXX fmt::fmt CLI11::CLI11 NVTT::NVTT)
+set(CMAKE_CXX_STANDARD 20)
+
+add_executable(tm3-mod-exporter WIN32 src/main.cpp)
+target_link_libraries(tm3-mod-exporter OpenMP::OpenMP_CXX NVTT::NVTT wx::core wx::base)
 
 add_custom_command(TARGET tm3-mod-exporter POST_BUILD
     COMMAND if $<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>==1 (
