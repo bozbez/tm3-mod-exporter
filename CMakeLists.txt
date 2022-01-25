@@ -24,7 +24,8 @@ FetchContent_MakeAvailable(wxWidgets)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(tm3-mod-exporter WIN32 src/main.cpp)
+aux_source_directory(src sources)
+add_executable(tm3-mod-exporter WIN32 ${sources})
 target_link_libraries(tm3-mod-exporter OpenMP::OpenMP_CXX NVTT::NVTT wx::core wx::base)
 
 add_custom_command(TARGET tm3-mod-exporter POST_BUILD
