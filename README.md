@@ -12,6 +12,7 @@ As input it takes a folder (with subfolders for map mods) of PNGs, and can outpu
 - *_DirtMask.png -> BC4
 - *_D.png -> BC3 if the PNG has an alpha channel, otherwise BC1
 
+<br />
 <p align="center">
-  <img src="https://github.com/bozbez/tm3-mod-exporter/blob/main/media/screenshot.png" />
+  <img src="https://raw.githubusercontent.com/bozbez/tm3-mod-exporter/master/media/screenshot.png" />
 </p>
