@@ -72,7 +72,16 @@ static std::vector<nvtt::Surface> BuildMipmapChain(nvtt::Surface image)
 
 	while (chain.back().canMakeNextMipmap()) {
 		chain.emplace_back(chain.back());
-		chain.back().buildNextMipmap(nvtt::MipmapFilter_Kaiser);
+
+		auto& image = chain.back();
+		
+		image.toLinearFromSrgb();
+		image.premultiplyAlpha();
+
+		image.buildNextMipmap(nvtt::MipmapFilter_Kaiser);
+
+		image.demultiplyAlpha();
+		image.toSrgb();
 	}
 
 	return chain;

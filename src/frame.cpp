@@ -1,5 +1,6 @@
 #include "frame.hpp"
 
+#include <filesystem>
 #include <wx/stdpaths.h>
 
 std::filesystem::path GetDocumentsPath()
@@ -138,8 +139,15 @@ Frame::Frame(const wxString &title)
 
 void Frame::OnInputChange(wxFileDirPickerEvent &event)
 {
-	output_panel->Enable();
 	input_dir = event.GetPath().ToStdWstring();
+	if (!std::filesystem::exists(input_dir.value()))  {
+		output_panel->Disable();
+		export_button->Disable();
+
+		return;
+	}
+
+	output_panel->Enable();
 
 	name = input_dir->filename();
 	mode = GuessMode(input_dir.value());
