@@ -4,6 +4,7 @@
 #include "input_panel.hpp"
 #include "output_panel.hpp"
 #include "export_thread.hpp"
+#include "nvtt/nvtt.h"
 
 #include <wx/wx.h>
 
@@ -38,12 +39,17 @@ private:
 
 	long long max_res = 4096;
 
+	nvtt::Quality quality = nvtt::Quality_Normal;
+	bool build_mipmaps = false;
+
 	void OnInputChange(wxFileDirPickerEvent &event);
 	void OnOuputChange(wxFileDirPickerEvent &event);
 	void OnNameChange(wxCommandEvent &event);
 	void OnFormatChoice(wxCommandEvent &event);
 	void OnModeChoice(wxCommandEvent &event);
 	void OnMaxResChoice(wxCommandEvent &event);
+	void OnQualityChoice(wxCommandEvent &event);
+	void OnBuildMipmapsChoice(wxCommandEvent &event);
 	void OnExportPressed(wxCommandEvent &event);
 
 	void OnExportFinished(wxCommandEvent &event);

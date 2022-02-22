@@ -39,7 +39,7 @@ class ExportThread : public wxThread {
 public:
 	ExportThread(wxEvtHandler *parent, std::filesystem::path input_dir,
 		     std::filesystem::path output_dir, std::wstring name, FORMAT format,
-		     long long max_res);
+		     long long max_res, nvtt::Quality quality, bool build_mipmaps);
 
 private:
 	nvtt::Context ctx{};
@@ -53,6 +53,9 @@ private:
 	FORMAT format;
 
 	long long max_res;
+
+	nvtt::Quality quality;
+	bool build_mipmaps;
 
 	virtual ExitCode Entry();
 

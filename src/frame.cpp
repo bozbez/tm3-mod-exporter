@@ -140,7 +140,7 @@ Frame::Frame(const wxString &title)
 void Frame::OnInputChange(wxFileDirPickerEvent &event)
 {
 	input_dir = event.GetPath().ToStdWstring();
-	if (!std::filesystem::exists(input_dir.value()))  {
+	if (!std::filesystem::exists(input_dir.value())) {
 		output_panel->Disable();
 		export_button->Disable();
 
@@ -152,6 +152,7 @@ void Frame::OnInputChange(wxFileDirPickerEvent &event)
 	name = input_dir->filename();
 	mode = GuessMode(input_dir.value());
 	output_dir = std::filesystem::path("");
+	build_mipmaps = mode != MODE_SKIN;
 
 	if (mode == MODE_SKIN) {
 		output_dir = GetSkinPath();
@@ -165,6 +166,7 @@ void Frame::OnInputChange(wxFileDirPickerEvent &event)
 	output_panel->SetName(name);
 	output_panel->SetFormat(format);
 	output_panel->SetMode(mode);
+	output_panel->SetBuildMipmaps(build_mipmaps);
 
 	export_button->Enable(output_dir != "");
 
@@ -193,6 +195,7 @@ void Frame::OnModeChoice(wxCommandEvent &event)
 	mode = static_cast<MODE>(reinterpret_cast<long long>(event.GetClientData()));
 
 	output_dir = std::filesystem::path("");
+	build_mipmaps = mode != MODE_SKIN;
 
 	if (mode == MODE_SKIN) {
 		output_dir = GetSkinPath();
@@ -204,12 +207,26 @@ void Frame::OnModeChoice(wxCommandEvent &event)
 
 	output_panel->SetFormat(format);
 	output_panel->SetPath(output_dir.value());
+	output_panel->SetBuildMipmaps(build_mipmaps);
+	
 	export_button->Enable(output_dir != "");
 }
 
 void Frame::OnMaxResChoice(wxCommandEvent &event)
 {
 	max_res = reinterpret_cast<long long>(event.GetClientData());
+}
+
+void Frame::OnQualityChoice(wxCommandEvent &event)
+{
+	void *quality_ptr = event.GetClientData();
+	quality = *reinterpret_cast<nvtt::Quality *>(&quality_ptr);
+}
+
+void Frame::OnBuildMipmapsChoice(wxCommandEvent &event)
+{
+	void *build_mimaps_ptr = event.GetClientData();
+	build_mipmaps = *reinterpret_cast<bool *>(&build_mimaps_ptr);
 }
 
 void Frame::OnExportPressed(wxCommandEvent &event)
@@ -221,7 +238,7 @@ void Frame::OnExportPressed(wxCommandEvent &event)
 	progress_bar->Enable();
 
 	export_thread = new ExportThread(this, input_dir.value(), output_dir.value(), name, format,
-					 max_res);
+					 max_res, quality, build_mipmaps);
 	export_thread->Run();
 }
 
@@ -261,6 +278,8 @@ wxBEGIN_EVENT_TABLE(Frame, wxFrame)
 	EVT_CHOICE(ID_FORMAT_CHOICE, Frame::OnFormatChoice)
 	EVT_CHOICE(ID_MODE_CHOICE, Frame::OnModeChoice)
 	EVT_CHOICE(ID_MAX_RES_CHOICE, Frame::OnMaxResChoice)
+	EVT_CHOICE(ID_QUALITY_CHOICE, Frame::OnQualityChoice)
+	EVT_CHOICE(ID_BUILD_MIPMAPS_CHOICE, Frame::OnBuildMipmapsChoice)
 	EVT_BUTTON(ID_EXPORT_BUTTON, Frame::OnExportPressed)
 	
 	EVT_COMMAND(wxID_ANY, EVT_EXPORT_FINISHED, Frame::OnExportFinished)

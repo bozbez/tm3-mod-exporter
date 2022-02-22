@@ -1,4 +1,5 @@
 #include "export_thread.hpp"
+#include "nvtt/nvtt.h"
 
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
@@ -65,8 +66,31 @@ static std::string FormatToString(nvtt::Format format)
 	}
 }
 
+static std::vector<nvtt::Surface> BuildMipmapChain(nvtt::Surface image)
+{
+	std::vector<nvtt::Surface> chain;
+	chain.push_back(image);
+
+	while (chain.back().canMakeNextMipmap()) {
+		chain.emplace_back(chain.back());
+
+		auto &image = chain.back();
+
+		image.toLinearFromSrgb();
+		image.premultiplyAlpha();
+
+		image.buildNextMipmap(nvtt::MipmapFilter_Kaiser);
+
+		image.demultiplyAlpha();
+		image.toSrgb();
+	}
+
+	return chain;
+}
+
 static bool CompressImage(nvtt::Context &ctx, const std::filesystem::path input,
-			  const nvtt::OutputOptions &output_options, long long max_res)
+			  const nvtt::OutputOptions &output_options, long long max_res,
+			  nvtt::Quality quality, bool build_mipmaps)
 {
 	nvtt::Surface image;
 	if (!image.load(input.string().c_str())) {
@@ -88,13 +112,20 @@ static bool CompressImage(nvtt::Context &ctx, const std::filesystem::path input,
 	if (needs_resize)
 		image.resize(max_res, nvtt::RoundMode_None, nvtt::ResizeFilter_Kaiser);
 
+	auto chain = build_mipmaps ? BuildMipmapChain(image) : std::vector<nvtt::Surface>{image};
+
+	nvtt::BatchList batch_list;
+	for (int i = 0; i < chain.size(); ++i)
+		batch_list.Append(&chain[i], 0, i, &output_options);
+
 	nvtt::CompressionOptions compression_options;
+	compression_options.setQuality(quality);
 	compression_options.setFormat(format.value());
 
-	if (!ctx.outputHeader(image, 1, compression_options, output_options))
+	if (!ctx.outputHeader(chain.front(), chain.size(), compression_options, output_options))
 		return false;
 
-	if (!ctx.compress(image, 0, 0, compression_options, output_options))
+	if (!ctx.compress(batch_list, compression_options))
 		return false;
 
 	return true;
@@ -102,14 +133,16 @@ static bool CompressImage(nvtt::Context &ctx, const std::filesystem::path input,
 
 ExportThread::ExportThread(wxEvtHandler *parent, std::filesystem::path input_dir,
 			   std::filesystem::path output_dir, std::wstring name, FORMAT format,
-			   long long max_res)
+			   long long max_res, nvtt::Quality quality, bool build_mipmaps)
 	: wxThread(wxTHREAD_JOINABLE),
 	  parent{parent},
 	  input_dir{input_dir},
 	  output_dir{output_dir},
 	  name{name},
 	  format{format},
-	  max_res{max_res}
+	  max_res{max_res},
+	  quality{quality},
+	  build_mipmaps{build_mipmaps}
 {
 }
 
@@ -161,7 +194,8 @@ void ExportThread::ExportArchive(const std::vector<Paths> &paths)
 		nvtt::OutputOptions output_options;
 		output_options.setOutputHandler(&buffers[i]);
 
-		auto success = CompressImage(ctx, paths[i].input, output_options, max_res);
+		auto success = CompressImage(ctx, paths[i].input, output_options, max_res, quality,
+					     build_mipmaps);
 		if (!success) {
 			wxLogError("Error compressing %ls -> %ls", paths[i].input.c_str(),
 				   paths[i].output.c_str());
@@ -217,7 +251,8 @@ void ExportThread::ExportFolder(const std::vector<Paths> &paths)
 		nvtt::OutputOptions output_options;
 		output_options.setFileName(output_path.string().c_str());
 
-		auto success = CompressImage(ctx, paths[i].input, output_options, max_res);
+		auto success = CompressImage(ctx, paths[i].input, output_options, max_res,
+					     quality, build_mipmaps);
 		if (!success) {
 			wxLogError("Error compressing %ls -> %ls", paths[i].input.c_str(),
 				   output_path.c_str());
