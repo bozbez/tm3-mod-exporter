@@ -16,7 +16,7 @@ static std::optional<nvtt::Format> GuessFormat(const std::filesystem::path &inpu
 	auto stem = input.stem().wstring();
 
 	if (stem.ends_with(L"_B")) {
-		return nvtt::Format_BC3;
+		return nvtt::Format_BC1;
 	} else if (stem.ends_with(L"_R")) {
 		return nvtt::Format_BC5;
 	} else if (stem.ends_with(L"_I")) {
@@ -26,12 +26,20 @@ static std::optional<nvtt::Format> GuessFormat(const std::filesystem::path &inpu
 	} else if (stem.ends_with(L"_AO")) {
 		return nvtt::Format_BC1;
 	} else if (stem.ends_with(L"_DirtMask")) {
-		return nvtt::Format_BC4;
+		return nvtt::Format_BC1;
 	} else if (stem.ends_with(L"_D")) {
 		if (image.alphaMode() == nvtt::AlphaMode_None)
 			return nvtt::Format_BC1;
 		else
 			return nvtt::Format_BC3;
+	} else if (stem.ends_with(L"_H")) {
+		return nvtt::Format_BC1;
+	} else if (stem.ends_with(L"_M")) {
+		return nvtt::Format_BC3;
+	} else if (stem.ends_with(L"_L")) {
+		return nvtt::Format_BC3;
+	} else if (stem.ends_with(L"_CoatR")) {
+		return nvtt::Format_BC1;
 	}
 
 	return std::nullopt;
