@@ -1,6 +1,6 @@
 # tm3-mod-exporter
 
-A small C++ GUI tool to aid conversion of PNG skin and mod textures to archived DDS textures for Trackmania 2020. Internally NVIDIA's [NVTT-3](https://developer.nvidia.com/gpu-accelerated-texture-compression) is used for the format conversion, with mipmaps generated in high quality with a Kaiser-windowed Sinc downsampling filter.
+A small C++ GUI tool to aid conversion of PNG skin and mod textures to archived DDS textures for Trackmania 2020. Internally NVIDIA's [NVTT-3](https://developer.nvidia.com/gpu-accelerated-texture-compression) is used for the format conversion, with optional high quality downsampling with a Kaiser-windowed Sinc filter.
 
 As input it takes a folder (with subfolders for map mods) of PNGs, and can output either a folder or archive of DDS files (the latter for car skins). DDS block compression variant is detected automatically based on the input filename:
 
