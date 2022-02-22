@@ -65,28 +65,6 @@ static std::string FormatToString(nvtt::Format format)
 	}
 }
 
-static std::vector<nvtt::Surface> BuildMipmapChain(nvtt::Surface image)
-{
-	std::vector<nvtt::Surface> chain;
-	chain.push_back(image);
-
-	while (chain.back().canMakeNextMipmap()) {
-		chain.emplace_back(chain.back());
-
-		auto& image = chain.back();
-		
-		image.toLinearFromSrgb();
-		image.premultiplyAlpha();
-
-		image.buildNextMipmap(nvtt::MipmapFilter_Kaiser);
-
-		image.demultiplyAlpha();
-		image.toSrgb();
-	}
-
-	return chain;
-}
-
 static bool CompressImage(nvtt::Context &ctx, const std::filesystem::path input,
 			  const nvtt::OutputOptions &output_options, long long max_res)
 {
@@ -110,19 +88,13 @@ static bool CompressImage(nvtt::Context &ctx, const std::filesystem::path input,
 	if (needs_resize)
 		image.resize(max_res, nvtt::RoundMode_None, nvtt::ResizeFilter_Kaiser);
 
-	auto chain = BuildMipmapChain(image);
-
-	nvtt::BatchList batch_list;
-	for (int i = 0; i < chain.size(); ++i)
-		batch_list.Append(&chain[i], 0, i, &output_options);
-
 	nvtt::CompressionOptions compression_options;
 	compression_options.setFormat(format.value());
 
-	if (!ctx.outputHeader(chain.front(), chain.size(), compression_options, output_options))
+	if (!ctx.outputHeader(image, 1, compression_options, output_options))
 		return false;
 
-	if (!ctx.compress(batch_list, compression_options))
+	if (!ctx.compress(image, 0, 0, compression_options, output_options))
 		return false;
 
 	return true;
