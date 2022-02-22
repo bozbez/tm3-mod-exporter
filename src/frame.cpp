@@ -58,7 +58,7 @@ MODE GuessMode(const std::filesystem::path &input)
 			continue;
 
 		auto path = entry.path();
-		if (path.extension() == ".png" || path.extension() == ".PNG")
+		if (input_extensions.contains(path.extension().string()))
 			images.push_back(path);
 	}
 

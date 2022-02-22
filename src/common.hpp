@@ -1,6 +1,7 @@
 #pragma once
 
 #include <wx/wx.h>
+#include <set>
 
 enum ID {
 	ID_INPUT_PICKER,
@@ -23,6 +24,10 @@ enum MODE {
 	MODE_UNKNOWN = 0,
 	MODE_SKIN,
 	MODE_MOD,
+};
+
+static const std::set<std::string> input_extensions = {
+	".png", ".PNG", ".jpg", ".JPG", ".jpeg", ".jpeg",
 };
 
 wxDECLARE_EVENT(EVT_EXPORT_FINISHED, wxThreadEvent);

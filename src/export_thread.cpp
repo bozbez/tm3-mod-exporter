@@ -1,5 +1,6 @@
 #include "export_thread.hpp"
 #include "nvtt/nvtt.h"
+#include "wx/log.h"
 
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
@@ -159,11 +160,18 @@ ExportThread::ExitCode ExportThread::Entry()
 
 		auto input_file = entry.path();
 
-		if (input_file.extension() != ".png" && input_file.extension() != ".PNG")
+		if (!input_extensions.contains(input_file.extension().string()))
 			continue;
 
 		auto output_file = input_file.lexically_relative(input_dir);
 		output_file.replace_extension("dds");
+
+		for (auto &[_, output_file2] : paths) {
+			if (output_file == output_file2)
+				wxLogWarning("Duplicate input stem \"%s\", skipping",
+					     input_file.stem().string());
+			continue;
+		}
 
 		output_dirs.insert(output_file.parent_path());
 		paths.push_back({input_file, output_file});
@@ -251,8 +259,8 @@ void ExportThread::ExportFolder(const std::vector<Paths> &paths)
 		nvtt::OutputOptions output_options;
 		output_options.setFileName(output_path.string().c_str());
 
-		auto success = CompressImage(ctx, paths[i].input, output_options, max_res,
-					     quality, build_mipmaps);
+		auto success = CompressImage(ctx, paths[i].input, output_options, max_res, quality,
+					     build_mipmaps);
 		if (!success) {
 			wxLogError("Error compressing %ls -> %ls", paths[i].input.c_str(),
 				   output_path.c_str());
