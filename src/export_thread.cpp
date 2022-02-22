@@ -220,6 +220,8 @@ void ExportThread::ExportArchive(const std::vector<Paths> &paths)
 		wxQueueEvent(parent, new wxThreadEvent(EVT_EXPORT_PROGRESS));
 	}
 
+	std::filesystem::create_directories(output_dir);
+
 	auto output_zip = output_dir;
 	output_zip /= name;
 	output_zip.replace_extension(".zip");
