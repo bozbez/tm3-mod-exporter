@@ -4,13 +4,17 @@ A small C++ GUI tool to aid conversion of PNG and JPEG skin and mod textures to 
 
 As input it takes a folder (with subfolders for map mods) of PNGs and JPEGs, and can output either a folder or archive of DDS files (the latter for car skins). DDS block compression variant is detected automatically based on the input filename:
 
-- *_B -> BC3
+- *_B -> BC1
 - *_R -> BC5
 - *_I -> BC3
 - *_N -> BC5
 - *_A0 -> BC1
-- *_DirtMask -> BC4
+- *_DirtMask -> BC1
 - *_D -> BC3 if the source image has an alpha channel, otherwise BC1
+- *_H -> BC1
+- *_M -> BC3
+- *_L -> BC3
+- *_CoatR -> BC1
 
 <br />
 <p align="center">
