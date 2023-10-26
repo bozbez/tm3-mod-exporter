@@ -27,7 +27,7 @@ enum MODE {
 };
 
 static const std::set<std::string> input_extensions = {
-	".png", ".PNG", ".jpg", ".JPG", ".jpeg", ".jpeg",
+	".png", ".PNG", ".jpg", ".JPG", ".jpeg", ".JPEG",
 };
 
 wxDECLARE_EVENT(EVT_EXPORT_FINISHED, wxThreadEvent);

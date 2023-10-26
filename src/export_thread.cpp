@@ -1,4 +1,5 @@
 #include "export_thread.hpp"
+#include "format.hpp"
 #include "nvtt/nvtt.h"
 #include "wx/log.h"
 
@@ -8,74 +9,7 @@
 
 #include <set>
 
-using namespace std::string_literals;
-
-static std::optional<nvtt::Format> GuessFormat(const std::filesystem::path &input,
-					       const nvtt::Surface &image)
-{
-	auto stem = input.stem().wstring();
-
-	if (stem.ends_with(L"_B")) {
-		return nvtt::Format_BC1;
-	} else if (stem.ends_with(L"_R")) {
-		return nvtt::Format_BC5;
-	} else if (stem.ends_with(L"_I")) {
-		return nvtt::Format_BC3;
-	} else if (stem.ends_with(L"_N")) {
-		return nvtt::Format_BC5;
-	} else if (stem.ends_with(L"_AO")) {
-		return nvtt::Format_BC1;
-	} else if (stem.ends_with(L"_DirtMask")) {
-		return nvtt::Format_BC1;
-	} else if (stem.ends_with(L"_D")) {
-		if (image.alphaMode() == nvtt::AlphaMode_None)
-			return nvtt::Format_BC1;
-		else
-			return nvtt::Format_BC3;
-	} else if (stem.ends_with(L"_H")) {
-		return nvtt::Format_BC1;
-	} else if (stem.ends_with(L"_M")) {
-		return nvtt::Format_BC3;
-	} else if (stem.ends_with(L"_L")) {
-		return nvtt::Format_BC3;
-	} else if (stem.ends_with(L"_CoatR")) {
-		return nvtt::Format_BC1;
-	}
-
-	return std::nullopt;
-}
-
-static std::string FormatToString(nvtt::Format format)
-{
-	switch (format) {
-	case nvtt::Format_BC1:
-		return "BC1"s;
-	case nvtt::Format_BC1a:
-		return "BC1a"s;
-	case nvtt::Format_BC2:
-		return "BC2"s;
-	case nvtt::Format_BC3:
-		return "BC3"s;
-	case nvtt::Format_BC3_RGBM:
-		return "BC3_RGBM"s;
-	case nvtt::Format_BC3n:
-		return "BC3n"s;
-	case nvtt::Format_BC4:
-		return "BC4"s;
-	case nvtt::Format_BC4S:
-		return "BC4S"s;
-	case nvtt::Format_BC5:
-		return "BC5"s;
-	case nvtt::Format_BC5S:
-		return "BC5S"s;
-	case nvtt::Format_BC7:
-		return "BC7"s;
-	default:
-		return "Unknown"s;
-	}
-}
-
-static std::vector<nvtt::Surface> BuildMipmapChain(nvtt::Surface image)
+static std::vector<nvtt::Surface> BuildMipmapChain(nvtt::Surface image, bool premultiplyAlpha)
 {
 	std::vector<nvtt::Surface> chain;
 	chain.push_back(image);
@@ -86,11 +20,11 @@ static std::vector<nvtt::Surface> BuildMipmapChain(nvtt::Surface image)
 		auto &image = chain.back();
 
 		image.toLinearFromSrgb();
-		image.premultiplyAlpha();
+		if(premultiplyAlpha) image.premultiplyAlpha();
 
 		image.buildNextMipmap(nvtt::MipmapFilter_Kaiser);
 
-		image.demultiplyAlpha();
+		if(premultiplyAlpha) image.demultiplyAlpha();
 		image.toSrgb();
 	}
 
@@ -107,21 +41,23 @@ static bool CompressImage(nvtt::Context &ctx, const std::filesystem::path input,
 		return false;
 	}
 
-	auto format = GuessFormat(input, image);
-	if (!format.has_value()) {
+	auto formatOptional = Format::GuessFormat(input, image);
+	if (!formatOptional.has_value()) {
 		wxLogWarning("Unable to guess format for %ls, skipping",
 			     input.filename().wstring());
 		return false;
 	}
+	auto format = formatOptional.value();
 
 	auto needs_resize = max_res > 0 && (image.width() > max_res || image.height() > max_res);
-	wxLogMessage("+ %ls (%s, %s)", input.filename().wstring(), FormatToString(format.value()),
-		     needs_resize ? "resizing" : "no resize");
+	wxLogMessage("+ %ls (%s, %s%s)", input.filename().wstring(),
+		     format.GetNvttFormatName(), needs_resize ? "resizing" : "no resize",
+		     format.ShouldPremultiplyAlpha() ? "" : ", no premultiplied alpha");
 
 	if (needs_resize)
 		image.resize(max_res, nvtt::RoundMode_None, nvtt::ResizeFilter_Kaiser);
 
-	auto chain = build_mipmaps ? BuildMipmapChain(image) : std::vector<nvtt::Surface>{image};
+	auto chain = build_mipmaps ? BuildMipmapChain(image, format.ShouldPremultiplyAlpha()) : std::vector<nvtt::Surface>{image};
 
 	nvtt::BatchList batch_list;
 	for (int i = 0; i < chain.size(); ++i)
@@ -129,7 +65,7 @@ static bool CompressImage(nvtt::Context &ctx, const std::filesystem::path input,
 
 	nvtt::CompressionOptions compression_options;
 	compression_options.setQuality(quality);
-	compression_options.setFormat(format.value());
+	compression_options.setFormat(format.GetNvttFormat());
 
 	if (!ctx.outputHeader(chain.front(), chain.size(), compression_options, output_options))
 		return false;

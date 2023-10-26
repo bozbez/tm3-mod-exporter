@@ -1,7 +1,10 @@
 .cache/
 .vscode/
+.idea/
 
 build/
 release/
+
+cmake-build-debug/
 
 compile-commands.json
