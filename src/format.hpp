@@ -8,7 +8,7 @@
 class Format {
 
 public:
-	// Attempt to determine
+	// Attempt to determine the compression format from the input file name and image data
 	static std::optional<Format> GuessFormat(const std::filesystem::path &input,
 						 const nvtt::Surface &image);
 
@@ -16,8 +16,8 @@ private:
 	nvtt::Format nvttFormat; // NVTT's internal compression format
 
 	// Should premultiplied alpha be used when building mipmaps? The answer is NO if the alpha
-	// channel of represents something other than opacity data (e.g. _I textures use alpha to
-	// represent the type of event triggers illumination).
+	// channel represents something other than opacity data (e.g. _I textures use alpha to
+	// represent the type of event that triggers illumination).
 	bool premultiplyAlpha;
 
 public:
